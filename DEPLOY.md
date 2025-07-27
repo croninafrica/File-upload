@@ -288,7 +288,7 @@ spring.servlet.multipart.max-request-size=100MB
 
 1. **更改默认访问代码**
    - 修改前端页面中的验证逻辑
-   - 使用更复杂的访问代码
+   - 当前访问代码已设置为: `lay@9527`
 
 2. **启用 HTTPS**
    - 获取 SSL 证书
