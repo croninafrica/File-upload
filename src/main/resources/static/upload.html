@@ -1254,13 +1254,16 @@
         const SESSION_TIMEOUT = 10 * 60 * 1000; // 10分钟
         
         // 初始化会话
-        async function initSession() {
+        async function initSession(authSessionId) {
             try {
                 const response = await fetch('/api/session/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({
+                        authSessionId: authSessionId
+                    })
                 });
                 
                 if (!response.ok) {
@@ -1271,10 +1274,19 @@
                 if (result.success) {
                     sessionId = result.sessionId;
                     startSessionTimer();
-                    console.log('会话创建成功:', sessionId);
+                    console.log('文件上传会话创建成功:', sessionId);
                     // 会话创建成功后加载文件列表
                     await loadServerFiles();
                 } else {
+                    // 如果会话创建失败，可能是认证会话过期，重定向到登录页面
+                    console.error('创建会话失败:', result.message);
+                    if (result.message && result.message.includes('认证会话')) {
+                        alert('认证已过期，请重新登录');
+                        localStorage.removeItem('fileupload_auth_session');
+                        localStorage.removeItem('fileupload_auth_time');
+                        window.location.href = 'index.html';
+                        return;
+                    }
                     throw new Error(result.message || '创建会话失败');
                 }
             } catch (error) {
@@ -1318,11 +1330,12 @@
         
         // 检查访问权限
         function checkAccess() {
-            const authenticated = localStorage.getItem('fileupload_authenticated');
+            const authSessionId = localStorage.getItem('fileupload_auth_session');
             const authTime = localStorage.getItem('fileupload_auth_time');
             
-            // 检查是否已认证
-            if (!authenticated || authenticated !== 'true') {
+            // 检查是否有认证会话ID
+            if (!authSessionId) {
+                console.log('未找到认证会话，重定向到登录页面');
                 window.location.href = 'index.html';
                 return false;
             }
@@ -1334,20 +1347,23 @@
                 const AUTH_TIMEOUT = 24 * 60 * 60 * 1000; // 24小时
                 
                 if (currentTime - authTimestamp > AUTH_TIMEOUT) {
-                    localStorage.removeItem('fileupload_authenticated');
+                    console.log('认证会话已过期，清理本地存储');
+                    localStorage.removeItem('fileupload_auth_session');
                     localStorage.removeItem('fileupload_auth_time');
+                    localStorage.removeItem('fileupload_authenticated'); // 清理旧的认证标记
                     window.location.href = 'index.html';
                     return false;
                 }
             }
             
-            return true;
+            return authSessionId; // 返回认证会话ID
         }
         
         // 页面加载时检查访问权限并初始化会话
         window.addEventListener('load', function() {
-            if (checkAccess()) {
-                initSession();
+            const authSessionId = checkAccess();
+            if (authSessionId) {
+                initSession(authSessionId);
             }
         });
         
@@ -1936,10 +1952,20 @@
          // 注销功能
          function logout() {
              if (confirm('确定要注销吗？')) {
-                 // 清除登录状态
-                 localStorage.removeItem('fileupload_authenticated');
+                 // 清除所有认证相关的本地存储
+                 localStorage.removeItem('fileupload_auth_session');
                  localStorage.removeItem('fileupload_auth_time');
+                 localStorage.removeItem('fileupload_authenticated'); // 清理旧的认证标记
                  sessionStorage.clear();
+                 
+                 // 清理会话信息
+                 sessionId = null;
+                 if (sessionTimer) {
+                     clearTimeout(sessionTimer);
+                     sessionTimer = null;
+                 }
+                 
+                 console.log('用户已注销，清理完成');
                  
                  // 跳转到首页
                  window.location.href = 'index.html';

@@ -51,22 +51,151 @@ public class FileUploadController {
         }
     };
 
+    // 访问代码配置，可以通过application.properties配置
+    @Value("${app.access.code:lay@9527}")
+    private String accessCode;
+    
+    // 访问代码验证会话管理
+    private final Map<String, AuthSession> authSessionMap = new ConcurrentHashMap<>();
+    
+    // 认证会话超时时间（24小时）
+    private static final long AUTH_SESSION_TIMEOUT = 24 * 60 * 60 * 1000L;
+    
+    // 认证会话信息类
+    private static class AuthSession {
+        private final String sessionId;
+        private final long createTime;
+        private long lastAccessTime;
+        private final String clientInfo;
+        
+        public AuthSession(String sessionId, String clientInfo) {
+            this.sessionId = sessionId;
+            this.clientInfo = clientInfo;
+            this.createTime = System.currentTimeMillis();
+            this.lastAccessTime = this.createTime;
+        }
+        
+        public boolean isExpired() {
+            return System.currentTimeMillis() - createTime > AUTH_SESSION_TIMEOUT;
+        }
+        
+        public void updateAccessTime() {
+            this.lastAccessTime = System.currentTimeMillis();
+        }
+        
+        // getters
+        public String getSessionId() { return sessionId; }
+        public long getCreateTime() { return createTime; }
+        public long getLastAccessTime() { return lastAccessTime; }
+        public String getClientInfo() { return clientInfo; }
+    }
+
     /**
-     * 创建会话
+     * 验证访问代码
+     */
+    @PostMapping("/api/auth/verify")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> verifyAccessCode(@RequestBody Map<String, String> request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            String inputCode = request.get("accessCode");
+            String clientInfo = request.get("clientInfo"); // 可选的客户端信息
+            
+            if (inputCode == null || inputCode.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "访问代码不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 验证访问代码
+            if (!accessCode.equals(inputCode.trim())) {
+                // 记录失败尝试（生产环境中应该有更严格的限制）
+                System.out.println("访问代码验证失败 - 输入: " + inputCode + ", 时间: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+                
+                response.put("success", false);
+                response.put("message", "访问代码不正确");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+            
+            // 创建认证会话
+            String authSessionId = UUID.randomUUID().toString();
+            AuthSession authSession = new AuthSession(authSessionId, clientInfo != null ? clientInfo : "unknown");
+            authSessionMap.put(authSessionId, authSession);
+            
+            // 记录成功认证
+            System.out.println("访问代码验证成功 - 会话ID: " + authSessionId + ", 时间: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+            
+            response.put("success", true);
+            response.put("authSessionId", authSessionId);
+            response.put("message", "验证成功");
+            response.put("timeout", AUTH_SESSION_TIMEOUT);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            System.err.println("访问代码验证异常: " + e.getMessage());
+            response.put("success", false);
+            response.put("message", "验证失败，请重试");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
+     * 验证认证会话
+     */
+    private boolean isValidAuthSession(String authSessionId) {
+        if (authSessionId == null || authSessionId.trim().isEmpty()) {
+            return false;
+        }
+        
+        AuthSession authSession = authSessionMap.get(authSessionId);
+        if (authSession == null) {
+            return false;
+        }
+        
+        if (authSession.isExpired()) {
+            authSessionMap.remove(authSessionId);
+            return false;
+        }
+        
+        // 更新最后访问时间
+        authSession.updateAccessTime();
+        return true;
+    }
+
+    /**
+     * 创建会话（需要先通过访问代码验证）
      */
     @PostMapping("/api/session/create")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> createSession() {
+    public ResponseEntity<Map<String, Object>> createSession(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
         
-        String sessionId = UUID.randomUUID().toString();
-        sessionMap.put(sessionId, System.currentTimeMillis());
-        
-        response.put("success", true);
-        response.put("sessionId", sessionId);
-        response.put("timeout", SESSION_TIMEOUT);
-        
-        return ResponseEntity.ok(response);
+        try {
+            String authSessionId = request.get("authSessionId");
+            
+            // 验证认证会话
+            if (!isValidAuthSession(authSessionId)) {
+                response.put("success", false);
+                response.put("message", "认证会话无效或已过期，请重新验证访问代码");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+            
+            String sessionId = UUID.randomUUID().toString();
+            sessionMap.put(sessionId, System.currentTimeMillis());
+            
+            response.put("success", true);
+            response.put("sessionId", sessionId);
+            response.put("timeout", SESSION_TIMEOUT);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "创建会话失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
     
     /**
@@ -325,8 +454,24 @@ public class FileUploadController {
                 sessionMap.remove(sessionId);
             }
             
+            // 清理过期认证会话
+            List<String> expiredAuthSessions = new ArrayList<>();
+            for (Map.Entry<String, AuthSession> entry : authSessionMap.entrySet()) {
+                if (entry.getValue().isExpired()) {
+                    expiredAuthSessions.add(entry.getKey());
+                }
+            }
+            
+            for (String authSessionId : expiredAuthSessions) {
+                authSessionMap.remove(authSessionId);
+            }
+            
             if (!expiredSessions.isEmpty()) {
-                System.out.println("清理了 " + expiredSessions.size() + " 个过期会话");
+                System.out.println("清理了 " + expiredSessions.size() + " 个过期文件上传会话");
+            }
+            
+            if (!expiredAuthSessions.isEmpty()) {
+                System.out.println("清理了 " + expiredAuthSessions.size() + " 个过期认证会话");
             }
             
             if (!expiredIds.isEmpty()) {
