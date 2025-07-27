@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件上传 - 文件上传系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .upload-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .upload-area {
+            border: 3px dashed #d1d5db;
+            border-radius: 16px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, #f8f9fa, #ffffff);
+        }
+        
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: linear-gradient(145deg, #f0f4ff, #ffffff);
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+        }
+        
+        .upload-area:hover::before {
+            left: 100%;
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .upload-text {
+            color: #1f2937;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: -0.3px;
+        }
+
+        .upload-hint {
+            color: #6b7280;
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .select-btn {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .select-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .select-btn:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(107, 114, 128, 0.25);
+        }
+        
+        .select-btn:hover::before {
+            left: 100%;
+        }
+        
+        .select-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .file-list {
+            margin-top: 30px;
+        }
+
+        .file-item {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #d1d5db;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            margin-right: 15px;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 16px;
+            letter-spacing: -0.2px;
+        }
+
+        .file-size {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .remove-btn {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(156, 163, 175, 0.2);
+        }
+
+        .remove-btn:hover {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(156, 163, 175, 0.25);
+        }
+        
+        .remove-btn:active {
+            transform: translateY(0);
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cancel-upload-btn {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cancel-upload-btn:hover {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(156, 163, 175, 0.25);
+        }
+
+        .cancel-upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .cancel-upload-btn:hover::before {
+            left: 100%;
+        }
+
+        .upload-btn:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(107, 114, 128, 0.25);
+        }
+
+        .upload-btn:disabled {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .upload-btn:hover::before {
+            left: 100%;
+        }
+        
+        .upload-btn:disabled::before {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 25px 0;
+            display: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2, #10b981);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .status-message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px 25px;
+            border-radius: 16px;
+            font-weight: 600;
+            display: none;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            color: #047857;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+        }
+        
+        .status-success::before {
+            content: '✓';
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .status-error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            color: #b91c1c;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
+        }
+        
+        .status-error::before {
+            content: '✕';
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .upload-card {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .server-files-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            padding: 0;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.6s ease-out 0.2s both;
+            overflow: hidden;
+        }
+
+        .server-files-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .server-files-header {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 40px;
+            margin: 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .server-files-title {
+            color: #1f2937;
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .refresh-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .refresh-btn:hover {
+            background: linear-gradient(135deg, #5a6fd8, #6b46c1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .refresh-btn:hover::before {
+            left: 100%;
+        }
+
+        .server-files-content {
+            padding: 40px;
+        }
+        
+        .server-file-item {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .server-file-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.05), transparent);
+            transition: left 0.5s;
+        }
+
+        .server-file-item:hover {
+            background: linear-gradient(145deg, #f8f9fa, #ffffff);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            border-color: #d1d5db;
+        }
+        
+        .server-file-item:hover::before {
+            left: 100%;
+        }
+
+        .server-file-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .server-file-actions:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(156, 163, 175, 0.2);
+            position: relative;
+            overflow: hidden;
+            min-width: 80px;
+        }
+        
+        .delete-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.5s;
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(156, 163, 175, 0.25);
+        }
+        
+        .delete-btn:hover::before {
+            left: 100%;
+        }
+        
+        .delete-btn:active {
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
+
+        .delete-btn:disabled {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 6px rgba(156, 163, 175, 0.15);
+        }
+        
+        .delete-btn:disabled::before {
+            display: none;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(107, 114, 128, 0.2);
+            position: relative;
+            overflow: hidden;
+            min-width: 80px;
+        }
+        
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.5s;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(107, 114, 128, 0.25);
+        }
+        
+        .download-btn:hover::before {
+            left: 100%;
+        }
+        
+        .download-btn:active {
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
+
+        .download-btn:disabled {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 6px rgba(156, 163, 175, 0.15);
+        }
+        
+        .download-btn:disabled::before {
+            display: none;
+        }
+
+        .server-file-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            gap: 15px;
+        }
+
+        .server-file-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .server-file-details {
+            flex: 1;
+        }
+
+        .server-file-name {
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 18px;
+            letter-spacing: -0.3px;
+            word-break: break-all;
+        }
+
+        .server-file-meta {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            gap: 25px;
+        }
+        
+        .file-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .file-detail-item::before {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: #9ca3af;
+            border-radius: 50%;
+        }
+
+        .loading-message {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #6b7280;
+            padding: 40px 20px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            text-align: center;
+            color: #ef4444;
+            padding: 40px 20px;
+            background: #fee2e2;
+            border-radius: 12px;
+            border: 1px solid #fca5a5;
+        }
+
+        .file-count {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        /* 自定义删除确认模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .modal-overlay.show .modal {
+            transform: scale(1) translateY(0);
+        }
+        
+        .modal-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 36px;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 15px;
+        }
+        
+        .modal-message {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .modal-filename {
+            background: #f3f4f6;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            color: #374151;
+            margin: 15px 0;
+            word-break: break-all;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .modal-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .modal-btn-cancel {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .modal-btn-cancel:hover {
+            background: #e5e7eb;
+            color: #374151;
+            transform: translateY(-2px);
+        }
+        
+        .modal-btn-delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .modal-btn-delete:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+        
+        .modal-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+
+
+
+        /* 部署功能样式 */
+        .deploy-card {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .deploy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .deploy-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .deploy-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 10px 0;
+        }
+
+        .deploy-hint {
+            color: #64748b;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .deploy-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .deploy-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .deploy-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .deploy-input {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #ffffff;
+        }
+
+        .deploy-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .deploy-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .deploy-output {
+            background: #1f2937;
+            color: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #374151;
+            display: none;
+        }
+
+        .deploy-output.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .deploy-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .deploy-output::-webkit-scrollbar-track {
+            background: #374151;
+            border-radius: 4px;
+        }
+
+        .deploy-output::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            border-radius: 4px;
+        }
+
+        .deploy-output::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+        
+        /* 部署按钮样式 */
+        .execute-btn {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+        }
+        
+        .execute-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.5s;
+        }
+        
+        .execute-btn:hover {
+            background: linear-gradient(135deg, #475569, #334155);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(100, 116, 139, 0.25);
+        }
+        
+        .execute-btn:hover::before {
+            left: 100%;
+        }
+        
+        .execute-btn:active {
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
+        
+        .execute-btn:disabled {
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+            color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 6px rgba(148, 163, 184, 0.15);
+        }
+        
+        .execute-btn:disabled::before {
+            display: none;
+        }
+        
+        /* 清空日志按钮样式 */
+        .clear-btn {
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(148, 163, 184, 0.2);
+            position: relative;
+            overflow: hidden;
+            flex: 1;
+        }
+        
+        .clear-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.5s;
+        }
+        
+        .clear-btn:hover {
+            background: linear-gradient(135deg, #64748b, #475569);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(148, 163, 184, 0.25);
+        }
+        
+        .clear-btn:hover::before {
+            left: 100%;
+        }
+        
+        .clear-btn:active {
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="logout()">🚪 注销</button>
+    
+    <div class="header">
+        <h1>文件上传</h1>
+        <p>选择文件并上传到服务器</p>
+    </div>
+
+    <div class="container">
+        <div class="upload-card">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">拖拽文件到此处</div>
+                <div class="upload-hint">或者点击下方按钮选择文件</div>
+                <button class="select-btn" onclick="document.getElementById('fileInput').click()">选择文件</button>
+                <input type="file" id="fileInput" class="file-input" multiple>
+            </div>
+
+            <div class="file-list" id="fileList"></div>
+
+            <div class="upload-actions">
+                <button class="upload-btn" id="uploadBtn" onclick="uploadFiles()" disabled>
+                    上传文件
+                </button>
+                <button class="cancel-upload-btn" id="cancelBtn" onclick="cancelUpload()" style="display: none;">
+                    取消上传
+                </button>
+            </div>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+
+        <div class="server-files-card">
+            <div class="server-files-header">
+                <h2 class="server-files-title">服务器文件列表</h2>
+                <button class="refresh-btn" onclick="loadServerFiles()">🔄 刷新</button>
+            </div>
+            <div id="serverFilesList" class="server-files-content">
+                <div class="loading-message">正在加载文件列表...</div>
+            </div>
+        </div>
+
+
+
+        <div class="deploy-card">
+            <div class="deploy-header">
+                <h2 class="deploy-title">自动部署</h2>
+                <div class="deploy-hint">搜索并上传文件，然后执行部署脚本</div>
+            </div>
+            <div class="deploy-content">
+                <div class="deploy-input-group">
+                    <label for="sourceDir" class="deploy-label">源目录:</label>
+                    <input type="text" id="sourceDir" class="deploy-input" placeholder="例如: C:\\Users\\17702\\Downloads" value="C:\\Users\\17702\\Downloads" />
+                </div>
+                <div class="deploy-input-group">
+                    <label for="filePattern" class="deploy-label">文件模式:</label>
+                    <input type="text" id="filePattern" class="deploy-input" placeholder="例如: zhpj_api*.zip" value="zhpj_api*.zip" />
+                </div>
+                <div class="deploy-input-group">
+                    <label for="deployScript" class="deploy-label">部署脚本:</label>
+                    <input type="text" id="deployScript" class="deploy-input" placeholder="例如: deploy.bat" value="deploy.bat" />
+                </div>
+                <div class="deploy-actions">
+                    <button class="execute-btn" onclick="startDeploy()" id="deployBtn">
+                        🚀 开始部署
+                    </button>
+                    <button class="clear-btn" onclick="clearDeployOutput()">
+                        🗑️ 清空日志
+                    </button>
+                </div>
+                <div class="deploy-output" id="deployOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义删除确认模态框 -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-icon">🗑️</div>
+            <div class="modal-title">确认删除文件</div>
+            <div class="modal-message">
+                您确定要删除以下文件吗？此操作不可撤销！
+            </div>
+            <div id="modalFilename" class="modal-filename"></div>
+            <div class="modal-actions">
+                <button id="modalCancel" class="modal-btn modal-btn-cancel">取消</button>
+                <button id="modalConfirm" class="modal-btn modal-btn-delete">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+        
+        // 会话管理
+        let sessionId = null;
+        let sessionTimer = null;
+        const SESSION_TIMEOUT = 10 * 60 * 1000; // 10分钟
+        
+        // 初始化会话
+        async function initSession() {
+            try {
+                const response = await fetch('/api/session/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('创建会话失败');
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    sessionId = result.sessionId;
+                    startSessionTimer();
+                    console.log('会话创建成功:', sessionId);
+                    // 会话创建成功后加载文件列表
+                    await loadServerFiles();
+                } else {
+                    throw new Error(result.message || '创建会话失败');
+                }
+            } catch (error) {
+                console.error('初始化会话失败:', error);
+                alert('会话初始化失败，请刷新页面重试');
+            }
+        }
+        
+        // 启动会话计时器
+        function startSessionTimer() {
+            if (sessionTimer) {
+                clearTimeout(sessionTimer);
+            }
+            sessionTimer = setTimeout(() => {
+                sessionExpired();
+            }, SESSION_TIMEOUT);
+        }
+        
+        // 重置会话计时器
+        function resetSessionTimer() {
+            if (sessionId) {
+                startSessionTimer();
+            }
+        }
+        
+        // 会话过期处理
+        function sessionExpired() {
+            sessionId = null;
+            if (sessionTimer) {
+                clearTimeout(sessionTimer);
+                sessionTimer = null;
+            }
+            alert('会话已过期，请重新登录');
+            window.location.href = 'index.html';
+        }
+        
+        // 检查会话有效性
+        function isSessionValid() {
+            return sessionId !== null;
+        }
+        
+        // 检查访问权限
+        function checkAccess() {
+            const authenticated = localStorage.getItem('fileupload_authenticated');
+            const authTime = localStorage.getItem('fileupload_auth_time');
+            
+            // 检查是否已认证
+            if (!authenticated || authenticated !== 'true') {
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            // 检查认证是否过期（24小时）
+            if (authTime) {
+                const authTimestamp = parseInt(authTime);
+                const currentTime = Date.now();
+                const AUTH_TIMEOUT = 24 * 60 * 60 * 1000; // 24小时
+                
+                if (currentTime - authTimestamp > AUTH_TIMEOUT) {
+                    localStorage.removeItem('fileupload_authenticated');
+                    localStorage.removeItem('fileupload_auth_time');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // 页面加载时检查访问权限并初始化会话
+        window.addEventListener('load', function() {
+            if (checkAccess()) {
+                initSession();
+            }
+        });
+        
+        // 用户活动时重置计时器
+        document.addEventListener('click', resetSessionTimer);
+        document.addEventListener('keypress', resetSessionTimer);
+        document.addEventListener('mousemove', resetSessionTimer);
+
+        // 文件选择处理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            handleFiles(e.target.files);
+        });
+
+        // 拖拽处理
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function handleFiles(files) {
+            for (let file of files) {
+                if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            }
+            updateFileList();
+            updateUploadButton();
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">📄</div>
+                        <div class="file-details">
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="remove-btn" onclick="removeFile(${index})">移除</button>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateUploadButton();
+        }
+
+        function updateUploadButton() {
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 存储上传会话信息（用于断点续传）
+        const uploadSessions = new Map();
+        let isUploading = false;
+        let uploadAbortController = null;
+        
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+            if (isUploading) return;
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const statusMessage = document.getElementById('statusMessage');
+
+            isUploading = true;
+            uploadAbortController = new AbortController();
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '上传中...';
+            cancelBtn.style.display = 'block';
+            progressBar.style.display = 'block';
+            statusMessage.style.display = 'none';
+
+            try {
+                let totalProgress = 0;
+                const fileCount = selectedFiles.length;
+                let successCount = 0;
+                let failedFiles = [];
+
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    
+                    try {
+                        // 更新状态显示当前上传的文件
+                        uploadBtn.textContent = `上传中... (${i + 1}/${fileCount}) ${file.name}`;
+                        
+                        // 分片上传单个文件
+                        const result = await uploadFileWithChunks(file, (fileProgress) => {
+                            // 计算总体进度
+                            const currentFileProgress = (i / fileCount) * 100 + (fileProgress / fileCount);
+                            progressFill.style.width = currentFileProgress + '%';
+                        });
+                        
+                        successCount++;
+                        console.log(`文件上传成功: ${file.name}, MD5: ${result.md5}`);
+                        
+                    } catch (error) {
+                        console.error(`文件上传失败: ${file.name}`, error);
+                        failedFiles.push({ file: file, error: error.message });
+                    }
+                    
+                    totalProgress = ((i + 1) / fileCount) * 100;
+                    progressFill.style.width = totalProgress + '%';
+                }
+
+                // 显示上传结果
+                if (failedFiles.length === 0) {
+                    statusMessage.textContent = `成功上传 ${successCount} 个文件！`;
+                    statusMessage.className = 'status-message status-success';
+                    // 清空文件列表
+                    selectedFiles = [];
+                    updateFileList();
+                } else {
+                    const failedNames = failedFiles.map(f => f.file.name).join(', ');
+                    statusMessage.textContent = `成功: ${successCount}个, 失败: ${failedFiles.length}个 (${failedNames})`;
+                    statusMessage.className = 'status-message status-error';
+                    
+                    // 只保留失败的文件
+                    selectedFiles = failedFiles.map(f => f.file);
+                    updateFileList();
+                }
+                
+                statusMessage.style.display = 'block';
+                
+                // 刷新服务器文件列表
+                if (successCount > 0) {
+                    loadServerFiles();
+                }
+                
+            } catch (error) {
+                console.error('上传错误:', error);
+                statusMessage.textContent = '上传失败: ' + error.message;
+                statusMessage.className = 'status-message status-error';
+                statusMessage.style.display = 'block';
+            } finally {
+                isUploading = false;
+                uploadAbortController = null;
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '上传文件';
+                cancelBtn.style.display = 'none';
+                progressBar.style.display = 'none';
+                progressFill.style.width = '0%';
+                updateUploadButton();
+            }
+        }
+        
+        // 分片上传单个文件（优化版本：支持重试、并发、断点续传）
+        async function uploadFileWithChunks(file, progressCallback) {
+            const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB
+            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            const MAX_RETRIES = 3; // 最大重试次数
+            const CONCURRENT_CHUNKS = 3; // 并发上传分片数
+            
+            // 检查会话有效性
+            if (!isSessionValid()) {
+                throw new Error('会话已过期，请刷新页面重新登录');
+            }
+            
+            // 1. 初始化上传
+            const initResponse = await fetch('/api/upload/init', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `fileName=${encodeURIComponent(file.name)}&fileSize=${file.size}&sessionId=${sessionId}`
+            });
+            
+            if (!initResponse.ok) {
+                throw new Error('初始化上传失败');
+            }
+            
+            const initResult = await initResponse.json();
+            if (!initResult.success) {
+                throw new Error(initResult.message);
+            }
+            
+            const uploadId = initResult.uploadId;
+            
+            // 2. 并发分片上传（带重试机制）
+            const uploadedChunks = new Set();
+            const failedChunks = new Map(); // 记录失败的分片和重试次数
+            
+            // 分片上传函数（带重试）
+            const uploadChunk = async (chunkIndex, retryCount = 0) => {
+                try {
+                    const start = chunkIndex * CHUNK_SIZE;
+                    const end = Math.min(start + CHUNK_SIZE, file.size);
+                    const chunk = file.slice(start, end);
+                    
+                    const formData = new FormData();
+                    formData.append('uploadId', uploadId);
+                    formData.append('chunkIndex', chunkIndex);
+                    formData.append('chunk', chunk);
+                    formData.append('sessionId', sessionId);
+                    
+                    const chunkResponse = await fetch('/api/upload/chunk', {
+                        method: 'POST',
+                        body: formData,
+                        signal: uploadAbortController?.signal
+                    });
+                    
+                    if (!chunkResponse.ok) {
+                        throw new Error(`HTTP ${chunkResponse.status}`);
+                    }
+                    
+                    const chunkResult = await chunkResponse.json();
+                    if (!chunkResult.success) {
+                        throw new Error(chunkResult.message);
+                    }
+                    
+                    uploadedChunks.add(chunkIndex);
+                    failedChunks.delete(chunkIndex); // 成功后移除失败记录
+                    
+                    // 更新进度
+                    const progress = (uploadedChunks.size / totalChunks) * 100;
+                    if (progressCallback) {
+                        progressCallback(progress);
+                    }
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.warn(`分片 ${chunkIndex} 上传失败 (第${retryCount + 1}次尝试):`, error.message);
+                    
+                    if (retryCount < MAX_RETRIES) {
+                        // 指数退避重试
+                        const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return uploadChunk(chunkIndex, retryCount + 1);
+                    } else {
+                        failedChunks.set(chunkIndex, retryCount + 1);
+                        throw new Error(`分片 ${chunkIndex + 1} 上传失败，已重试 ${MAX_RETRIES} 次`);
+                    }
+                }
+            };
+            
+            // 并发上传所有分片
+            const chunkPromises = [];
+            for (let i = 0; i < totalChunks; i += CONCURRENT_CHUNKS) {
+                const batch = [];
+                for (let j = 0; j < CONCURRENT_CHUNKS && i + j < totalChunks; j++) {
+                    batch.push(uploadChunk(i + j));
+                }
+                
+                // 等待当前批次完成
+                try {
+                    await Promise.all(batch);
+                } catch (error) {
+                    // 如果批次中有失败的分片，记录但继续
+                    console.warn('批次上传中有分片失败:', error.message);
+                }
+            }
+            
+            // 检查是否有失败的分片
+            if (failedChunks.size > 0) {
+                const failedList = Array.from(failedChunks.keys()).map(i => i + 1).join(', ');
+                throw new Error(`以下分片上传失败: ${failedList}`);
+            }
+            
+            // 3. 合并文件
+            const mergeResponse = await fetch('/api/upload/merge', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `uploadId=${uploadId}&sessionId=${sessionId}`,
+                signal: uploadAbortController?.signal
+            });
+            
+            if (!mergeResponse.ok) {
+                throw new Error('文件合并失败');
+            }
+            
+            const mergeResult = await mergeResponse.json();
+            if (!mergeResult.success) {
+                throw new Error(mergeResult.message);
+            }
+            
+            return mergeResult;
+        }
+
+        // 加载服务器文件列表
+        async function loadServerFiles() {
+            const serverFilesList = document.getElementById('serverFilesList');
+            
+            try {
+                serverFilesList.innerHTML = '<div class="loading-message">正在加载文件列表...</div>';
+                
+                // 检查会话有效性
+                if (!isSessionValid()) {
+                    throw new Error('会话已过期，请刷新页面重新登录');
+                }
+                
+                const response = await fetch(`/api/files?sessionId=${sessionId}`);
+                if (!response.ok) {
+                    throw new Error('获取文件列表失败');
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.message || '获取文件列表失败');
+                }
+                
+                const files = result.files || [];
+                
+                if (files.length === 0) {
+                    serverFilesList.innerHTML = `
+                        <div class="empty-message">
+                            <div class="empty-icon">📂</div>
+                            <div>暂无文件</div>
+                            <div style="font-size: 12px; margin-top: 8px;">上传目录: ${result.uploadPath || 'N/A'}</div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 根据文件扩展名选择图标
+                const getFileIcon = (fileName) => {
+                    const ext = fileName.split('.').pop().toLowerCase();
+                    const iconMap = {
+                        'pdf': '📄',
+                        'doc': '📝', 'docx': '📝',
+                        'xls': '📊', 'xlsx': '📊',
+                        'ppt': '📈', 'pptx': '📈',
+                        'txt': '📃',
+                        'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'bmp': '🖼️',
+                        'mp4': '🎬', 'avi': '🎬', 'mov': '🎬', 'wmv': '🎬',
+                        'mp3': '🎵', 'wav': '🎵', 'flac': '🎵',
+                        'zip': '📦', 'rar': '📦', '7z': '📦',
+                        'exe': '⚙️', 'msi': '⚙️',
+                        'html': '🌐', 'css': '🎨', 'js': '⚡', 'json': '📋'
+                    };
+                    return iconMap[ext] || '📄';
+                };
+                
+                let html = '';
+                 files.forEach(file => {
+                     html += `
+                         <div class="server-file-item">
+                             <div class="server-file-info">
+                                 <div class="server-file-icon">${getFileIcon(file.name)}</div>
+                                 <div class="server-file-details">
+                                     <div class="server-file-name">${escapeHtml(file.name)}</div>
+                                     <div class="server-file-meta">
+                                         <span class="file-detail-item">大小: ${file.sizeFormatted}</span>
+                                         <span class="file-detail-item">修改时间: ${file.lastModifiedFormatted}</span>
+                                     </div>
+                                 </div>
+                             </div>
+                             <div class="server-file-actions">
+                                 <button class="download-btn" onclick="downloadFile('${escapeHtml(file.name)}')">📥 下载</button>
+                                 <button class="delete-btn" onclick="deleteServerFile('${escapeHtml(file.name)}')">🗑️ 删除</button>
+                             </div>
+                         </div>
+                     `;
+                 });
+                
+                html += `<div class="file-count">共 ${files.length} 个文件</div>`;
+                serverFilesList.innerHTML = html;
+                
+            } catch (error) {
+                console.error('加载文件列表失败:', error);
+                serverFilesList.innerHTML = `
+                    <div class="error-message">
+                        ❌ 加载文件列表失败<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        // HTML转义函数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 页面加载完成后的处理（文件列表将在会话创建成功后自动加载）
+        document.addEventListener('DOMContentLoaded', function() {
+            // 文件列表加载已移至initSession函数中
+        });
+
+        // 显示删除确认模态框
+         function showDeleteModal(fileName) {
+             const modal = document.getElementById('deleteModal');
+             const filenameElement = document.getElementById('modalFilename');
+             
+             filenameElement.textContent = fileName;
+             modal.classList.add('show');
+             
+             // 防止背景滚动
+             document.body.style.overflow = 'hidden';
+         }
+         
+         // 隐藏删除确认模态框
+         function hideDeleteModal() {
+             const modal = document.getElementById('deleteModal');
+             modal.classList.remove('show');
+             
+             // 恢复背景滚动
+             document.body.style.overflow = 'auto';
+         }
+         
+         // 删除服务器文件
+         async function deleteServerFile(fileName) {
+             return new Promise((resolve) => {
+                 showDeleteModal(fileName);
+                 
+                 const modal = document.getElementById('deleteModal');
+                 const cancelBtn = document.getElementById('modalCancel');
+                 const confirmBtn = document.getElementById('modalConfirm');
+                 
+                 // 取消删除
+                 const handleCancel = () => {
+                     hideDeleteModal();
+                     cleanup();
+                     resolve(false);
+                 };
+                 
+                 // 确认删除
+                 const handleConfirm = async () => {
+                     try {
+                         // 禁用按钮
+                         confirmBtn.disabled = true;
+                         cancelBtn.disabled = true;
+                         confirmBtn.textContent = '删除中...';
+                         
+                         // 禁用所有删除按钮
+                         const deleteButtons = document.querySelectorAll('.delete-btn');
+                         deleteButtons.forEach(btn => btn.disabled = true);
+                         
+                         // 检查会话有效性
+                         if (!isSessionValid()) {
+                             throw new Error('会话已过期，请刷新页面重新登录');
+                         }
+                         
+                         const response = await fetch(`/api/files/${encodeURIComponent(fileName)}?sessionId=${sessionId}`, {
+                             method: 'DELETE'
+                         });
+                         
+                         const result = await response.json();
+                         
+                         if (result.success) {
+                             // 删除成功，显示成功消息
+                             const statusMessage = document.getElementById('statusMessage');
+                             statusMessage.textContent = `文件 "${fileName}" 删除成功！`;
+                             statusMessage.className = 'status-message status-success';
+                             statusMessage.style.display = 'block';
+                             
+                             // 刷新文件列表
+                             await loadServerFiles();
+                             
+                             // 3秒后隐藏成功消息
+                             setTimeout(() => {
+                                 statusMessage.style.display = 'none';
+                             }, 3000);
+                         } else {
+                             throw new Error(result.message || '删除失败');
+                         }
+                         
+                     } catch (error) {
+                         console.error('删除文件失败:', error);
+                         
+                         // 显示错误消息
+                         const statusMessage = document.getElementById('statusMessage');
+                         statusMessage.textContent = `删除文件失败: ${error.message}`;
+                         statusMessage.className = 'status-message status-error';
+                         statusMessage.style.display = 'block';
+                         
+                         // 5秒后隐藏错误消息
+                         setTimeout(() => {
+                             statusMessage.style.display = 'none';
+                         }, 5000);
+                     } finally {
+                         // 重新启用所有删除按钮
+                         const deleteButtons = document.querySelectorAll('.delete-btn');
+                         deleteButtons.forEach(btn => btn.disabled = false);
+                         
+                         hideDeleteModal();
+                         cleanup();
+                         resolve(true);
+                     }
+                 };
+                 
+                 // 清理事件监听器
+                 const cleanup = () => {
+                     cancelBtn.removeEventListener('click', handleCancel);
+                     confirmBtn.removeEventListener('click', handleConfirm);
+                     modal.removeEventListener('click', handleModalClick);
+                     document.removeEventListener('keydown', handleKeyDown);
+                     
+                     // 重置按钮状态
+                     confirmBtn.disabled = false;
+                     cancelBtn.disabled = false;
+                     confirmBtn.textContent = '删除';
+                 };
+                 
+                 // 点击模态框背景关闭
+                 const handleModalClick = (e) => {
+                     if (e.target === modal) {
+                         handleCancel();
+                     }
+                 };
+                 
+                 // ESC键关闭
+                 const handleKeyDown = (e) => {
+                     if (e.key === 'Escape') {
+                         handleCancel();
+                     }
+                 };
+                 
+                 // 添加事件监听器
+                 cancelBtn.addEventListener('click', handleCancel);
+                 confirmBtn.addEventListener('click', handleConfirm);
+                 modal.addEventListener('click', handleModalClick);
+                 document.addEventListener('keydown', handleKeyDown);
+             });
+         }
+
+         // 取消上传功能
+         function cancelUpload() {
+             if (!isUploading || !uploadAbortController) return;
+             
+             uploadAbortController.abort();
+             
+             const statusMessage = document.getElementById('statusMessage');
+             statusMessage.textContent = '上传已取消';
+             statusMessage.className = 'status-message status-error';
+             statusMessage.style.display = 'block';
+             
+             // 3秒后隐藏消息
+             setTimeout(() => {
+                 statusMessage.style.display = 'none';
+             }, 3000);
+         }
+
+         // 修改上传成功后的处理，自动刷新文件列表
+         const originalUploadFiles = uploadFiles;
+         uploadFiles = async function() {
+             await originalUploadFiles();
+             // 如果上传成功，刷新文件列表
+             const statusMessage = document.getElementById('statusMessage');
+             if (statusMessage.classList.contains('status-success')) {
+                 setTimeout(() => {
+                     loadServerFiles();
+                 }, 1000); // 延迟1秒刷新，确保文件已保存
+             }
+         };
+
+         // 注销功能
+         function logout() {
+             if (confirm('确定要注销吗？')) {
+                 // 清除登录状态
+                 localStorage.removeItem('fileupload_authenticated');
+                 localStorage.removeItem('fileupload_auth_time');
+                 sessionStorage.clear();
+                 
+                 // 跳转到首页
+                 window.location.href = 'index.html';
+             }
+         }
+
+         // 文件下载功能 - 支持分片下载
+         async function downloadFile(fileName) {
+             try {
+                 // 禁用下载按钮，防止重复点击
+                 const downloadButtons = document.querySelectorAll('.download-btn');
+                 downloadButtons.forEach(btn => btn.disabled = true);
+                 
+                 // 显示下载状态
+                 const statusMessage = document.getElementById('statusMessage');
+                 statusMessage.textContent = `正在下载文件: ${fileName}`;
+                 statusMessage.className = 'status-message status-info';
+                 statusMessage.style.display = 'block';
+                 
+                 // 检查会话有效性
+                 if (!isSessionValid()) {
+                     throw new Error('会话已过期，请刷新页面重新登录');
+                 }
+                 
+                 // 创建下载链接
+                 const downloadUrl = `/api/files/${encodeURIComponent(fileName)}/download?sessionId=${sessionId}`;
+                 
+                 // 获取文件大小
+                 const headResponse = await fetch(downloadUrl, {
+                     method: 'HEAD'
+                 });
+                 
+                 if (!headResponse.ok) {
+                     throw new Error(`文件下载失败: ${headResponse.status} ${headResponse.statusText}`);
+                 }
+                 
+                 const fileSize = parseInt(headResponse.headers.get('Content-Length') || '0');
+                 const chunkSize = 1024 * 1024; // 1MB 分片大小
+                 
+                 // 如果文件小于分片大小，直接下载
+                 if (fileSize <= chunkSize) {
+                     await downloadFileDirectly(downloadUrl, fileName);
+                 } else {
+                     // 分片下载
+                     await downloadFileInChunks(downloadUrl, fileName, fileSize, chunkSize);
+                 }
+                 
+                 // 显示成功消息
+                 statusMessage.textContent = `文件下载完成: ${fileName}`;
+                 statusMessage.className = 'status-message status-success';
+                 
+                 // 3秒后隐藏消息
+                 setTimeout(() => {
+                     statusMessage.style.display = 'none';
+                 }, 3000);
+                 
+             } catch (error) {
+                 console.error('下载文件失败:', error);
+                 
+                 // 显示错误消息
+                 const statusMessage = document.getElementById('statusMessage');
+                 statusMessage.textContent = `下载文件失败: ${error.message}`;
+                 statusMessage.className = 'status-message status-error';
+                 statusMessage.style.display = 'block';
+                 
+                 // 5秒后隐藏错误消息
+                 setTimeout(() => {
+                     statusMessage.style.display = 'none';
+                 }, 5000);
+             } finally {
+                 // 重新启用所有下载按钮
+                 const downloadButtons = document.querySelectorAll('.download-btn');
+                 downloadButtons.forEach(btn => btn.disabled = false);
+             }
+         }
+         
+         // 直接下载小文件
+         async function downloadFileDirectly(downloadUrl, fileName) {
+             const response = await fetch(downloadUrl);
+             if (!response.ok) {
+                 throw new Error(`下载失败: ${response.status} ${response.statusText}`);
+             }
+             
+             const blob = await response.blob();
+             const url = window.URL.createObjectURL(blob);
+             
+             const link = document.createElement('a');
+             link.href = url;
+             link.download = fileName;
+             link.style.display = 'none';
+             document.body.appendChild(link);
+             link.click();
+             document.body.removeChild(link);
+             
+             window.URL.revokeObjectURL(url);
+         }
+         
+         // 分片下载大文件
+         async function downloadFileInChunks(downloadUrl, fileName, fileSize, chunkSize) {
+             const chunks = [];
+             let downloadedBytes = 0;
+             
+             // 计算分片数量
+             const totalChunks = Math.ceil(fileSize / chunkSize);
+             
+             for (let i = 0; i < totalChunks; i++) {
+                 const start = i * chunkSize;
+                 const end = Math.min(start + chunkSize - 1, fileSize - 1);
+                 
+                 // 更新下载进度
+                 const statusMessage = document.getElementById('statusMessage');
+                 const progress = Math.round((i / totalChunks) * 100);
+                 statusMessage.textContent = `正在下载文件: ${fileName} (${progress}% - 分片 ${i + 1}/${totalChunks})`;
+                 
+                 // 发送Range请求
+                 const response = await fetch(downloadUrl, {
+                     headers: {
+                         'Range': `bytes=${start}-${end}`
+                     }
+                 });
+                 
+                 if (!response.ok && response.status !== 206) {
+                     throw new Error(`分片下载失败: ${response.status} ${response.statusText}`);
+                 }
+                 
+                 const chunk = await response.arrayBuffer();
+                 chunks.push(chunk);
+                 downloadedBytes += chunk.byteLength;
+                 
+                 // 检查会话有效性
+                 if (!isSessionValid()) {
+                     throw new Error('会话已过期，下载中断');
+                 }
+             }
+             
+             // 合并所有分片
+             const statusMessage = document.getElementById('statusMessage');
+             statusMessage.textContent = `正在合并文件: ${fileName}`;
+             
+             const blob = new Blob(chunks);
+             const url = window.URL.createObjectURL(blob);
+             
+             const link = document.createElement('a');
+             link.href = url;
+             link.download = fileName;
+             link.style.display = 'none';
+             document.body.appendChild(link);
+             link.click();
+             document.body.removeChild(link);
+             
+             window.URL.revokeObjectURL(url);
+         }
+
+         // 部署功能
+         async function startDeploy() {
+             const sourceDir = document.getElementById('sourceDir').value.trim();
+             const filePattern = document.getElementById('filePattern').value.trim();
+             const deployScript = document.getElementById('deployScript').value.trim();
+             const deployBtn = document.getElementById('deployBtn');
+             const deployOutput = document.getElementById('deployOutput');
+             
+             if (!sourceDir || !filePattern || !deployScript) {
+                 alert('请填写所有必需的字段');
+                 return;
+             }
+             
+             // 禁用按钮，显示执行状态
+             deployBtn.disabled = true;
+             deployBtn.textContent = '🔄 部署中...';
+             
+             // 显示输出区域
+             deployOutput.classList.add('show');
+             deployOutput.textContent = `开始部署流程...\n源目录: ${sourceDir}\n文件模式: ${filePattern}\n部署脚本: ${deployScript}\n\n`;
+             
+             try {
+                 // 第一步：搜索文件
+                 appendDeployLog('🔍 正在搜索匹配的文件...');
+                 
+                 // 检查会话有效性
+                 if (!isSessionValid()) {
+                     throw new Error('会话已过期，请刷新页面重新登录');
+                 }
+                 
+                 const searchResponse = await fetch('/api/deploy/search-files', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({
+                         sourceDir: sourceDir,
+                         filePattern: filePattern,
+                         sessionId: sessionId
+                     })
+                 });
+                 
+                 const searchResult = await searchResponse.json();
+                 
+                 if (!searchResult.success) {
+                     throw new Error(searchResult.error || '文件搜索失败');
+                 }
+                 
+                 if (!searchResult.files || searchResult.files.length === 0) {
+                     throw new Error('未找到匹配的文件');
+                 }
+                 
+                 appendDeployLog(`✅ 找到 ${searchResult.files.length} 个匹配文件:`);
+                 searchResult.files.forEach(file => {
+                     appendDeployLog(`   - ${file}`);
+                 });
+                 
+                 // 第二步：上传文件
+                 appendDeployLog('\n📤 开始上传文件...');
+                 
+                 for (const filePath of searchResult.files) {
+                     appendDeployLog(`正在上传: ${filePath}`);
+                     
+                     // 检查会话有效性
+                     if (!isSessionValid()) {
+                         throw new Error('会话已过期，请刷新页面重新登录');
+                     }
+                     
+                     const uploadResponse = await fetch('/api/deploy/upload-file', {
+                         method: 'POST',
+                         headers: {
+                             'Content-Type': 'application/json'
+                         },
+                         body: JSON.stringify({
+                             filePath: filePath,
+                             sessionId: sessionId
+                         })
+                     });
+                     
+                     const uploadResult = await uploadResponse.json();
+                     
+                     if (!uploadResult.success) {
+                         throw new Error(`上传文件失败: ${uploadResult.error}`);
+                     }
+                     
+                     appendDeployLog(`✅ 上传成功: ${uploadResult.fileName}`);
+                 }
+                 
+                 // 第三步：执行部署脚本
+                 appendDeployLog('\n🚀 开始执行部署脚本...');
+                 
+                 // 检查会话有效性
+                 if (!isSessionValid()) {
+                     throw new Error('会话已过期，请刷新页面重新登录');
+                 }
+                 
+                 const scriptResponse = await fetch('/api/execute-script', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({ 
+                         command: deployScript,
+                         sessionId: sessionId 
+                     })
+                 });
+                 
+                 const scriptResult = await scriptResponse.json();
+                 
+                 if (scriptResult.success) {
+                     appendDeployLog('✅ 部署脚本执行成功！');
+                     if (scriptResult.output) {
+                         appendDeployLog('脚本输出:');
+                         appendDeployLog(scriptResult.output);
+                     }
+                 } else {
+                     appendDeployLog('❌ 部署脚本执行失败！');
+                     appendDeployLog(`错误信息: ${scriptResult.error}`);
+                 }
+                 
+                 appendDeployLog('\n🎉 部署流程完成！');
+                 
+                 // 刷新服务器文件列表
+                 setTimeout(() => {
+                     loadServerFiles();
+                 }, 1000);
+                 
+             } catch (error) {
+                 console.error('部署失败:', error);
+                 appendDeployLog(`\n❌ 部署失败: ${error.message}`);
+             } finally {
+                 // 恢复按钮状态
+                 deployBtn.disabled = false;
+                 deployBtn.textContent = '🚀 开始部署';
+                 
+                 // 滚动到输出区域底部
+                 deployOutput.scrollTop = deployOutput.scrollHeight;
+             }
+         }
+         
+         // 添加部署日志
+         function appendDeployLog(message) {
+             const deployOutput = document.getElementById('deployOutput');
+             const timestamp = new Date().toLocaleTimeString();
+             deployOutput.textContent += `[${timestamp}] ${message}\n`;
+             deployOutput.scrollTop = deployOutput.scrollHeight;
+         }
+         
+         // 清空部署输出
+         function clearDeployOutput() {
+             const deployOutput = document.getElementById('deployOutput');
+             deployOutput.textContent = '';
+             deployOutput.classList.remove('show');
+         }
+
+
+    </script>
+</body>
+</html>
