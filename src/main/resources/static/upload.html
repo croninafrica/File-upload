@@ -1148,6 +1148,358 @@
             transform: translateY(0);
             transition: all 0.1s ease;
         }
+
+        /* 导航菜单样式 */
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            border-color: white;
+        }
+
+        /* 内容区域样式 */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* 快捷菜单按钮样式 */
+        .quick-menu-section {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .quick-menu-header {
+            margin-bottom: 20px;
+        }
+        
+        .quick-menu-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin: 0 0 8px 0;
+        }
+        
+        .quick-menu-hint {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+        }
+        
+        .quick-menu-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .quick-deploy-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            position: relative;
+            overflow: hidden;
+            min-width: 120px;
+        }
+        
+        .quick-deploy-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.5s;
+        }
+        
+        .quick-deploy-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.25);
+        }
+        
+        .quick-deploy-btn:hover::before {
+            left: 100%;
+        }
+        
+        .quick-deploy-btn:active {
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
+        
+        .quick-menu-empty {
+            text-align: center;
+            padding: 30px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        
+        .quick-menu-empty-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        /* 菜单配置样式 */
+        .menu-config-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .menu-config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .menu-config-title {
+            color: #1f2937;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .add-menu-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .add-menu-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+        }
+
+        .menu-item {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .menu-item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .menu-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-btn, .delete-btn, .deploy-menu-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-1px);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+        }
+
+        .deploy-menu-btn {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+        }
+
+        .deploy-menu-btn:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            transform: translateY(-1px);
+        }
+
+        .menu-item-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .menu-detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-detail-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .menu-detail-value {
+            word-break: break-all;
+        }
+
+        /* 菜单配置表单样式 */
+        .menu-form {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .menu-form.show {
+            display: block;
+        }
+
+        .menu-form.hide {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .save-btn, .cancel-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: linear-gradient(135deg, #4b5563, #374151);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -1156,10 +1508,17 @@
     <div class="header">
         <h1>文件上传</h1>
         <p>选择文件并上传到服务器</p>
+        <div class="nav-menu">
+            <button class="nav-btn" onclick="showSection('upload')">📁 文件上传</button>
+            <button class="nav-btn" onclick="showSection('deploy')">🚀 自动部署</button>
+            <button class="nav-btn" onclick="showSection('menu-config')">⚙️ 菜单管理</button>
+        </div>
     </div>
 
     <div class="container">
-        <div class="upload-card">
+        <!-- 文件上传区域 -->
+        <div id="upload-section" class="content-section active">
+            <div class="upload-card">
             <div class="upload-area" id="uploadArea">
                 <div class="upload-icon">📁</div>
                 <div class="upload-text">拖拽文件到此处</div>
@@ -1195,22 +1554,39 @@
                 <div class="loading-message">正在加载文件列表...</div>
             </div>
         </div>
+        </div>
 
-
-
-        <div class="deploy-card">
+        <!-- 自动部署区域 -->
+        <div id="deploy-section" class="content-section">
+            <div class="deploy-card">
             <div class="deploy-header">
                 <h2 class="deploy-title">自动部署</h2>
                 <div class="deploy-hint">搜索并上传文件，然后执行部署脚本</div>
             </div>
+            
+            <!-- 快捷菜单按钮区域 -->
+            <div class="quick-menu-section" id="quickMenuSection">
+                <div class="quick-menu-header">
+                    <h3 class="quick-menu-title">快捷部署菜单</h3>
+                    <div class="quick-menu-hint">点击按钮快速执行预配置的部署任务</div>
+                </div>
+                <div class="quick-menu-buttons" id="quickMenuButtons">
+                    <!-- 动态生成的菜单按钮将显示在这里 -->
+                </div>
+            </div>
+            
             <div class="deploy-content">
                 <div class="deploy-input-group">
                     <label for="sourceDir" class="deploy-label">源目录:</label>
                     <input type="text" id="sourceDir" class="deploy-input" placeholder="例如: C:\\Users\\17702\\Downloads" value="C:\\Users\\17702\\Downloads" />
                 </div>
                 <div class="deploy-input-group">
-                    <label for="filePattern" class="deploy-label">文件模式:</label>
-                    <input type="text" id="filePattern" class="deploy-input" placeholder="例如: zhpj_api*.zip" value="zhpj_api*.zip" />
+                    <label for="frontendPattern" class="deploy-label">匹配前端文件名:</label>
+                    <input type="text" id="frontendPattern" class="deploy-input" placeholder="例如: zhpj-web*.zip" value="zhpj-web*.zip" />
+                </div>
+                <div class="deploy-input-group">
+                    <label for="backendPattern" class="deploy-label">匹配后端文件名:</label>
+                    <input type="text" id="backendPattern" class="deploy-input" placeholder="例如: zhpj_api*.zip" value="zhpj_api*.zip" />
                 </div>
                 <div class="deploy-input-group">
                     <label for="deployScript" class="deploy-label">部署脚本:</label>
@@ -1225,6 +1601,50 @@
                     </button>
                 </div>
                 <div class="deploy-output" id="deployOutput"></div>
+            </div>
+        </div>
+        </div>
+
+        <!-- 菜单管理区域 -->
+        <div id="menu-config-section" class="content-section">
+            <div class="menu-config-card">
+                <div class="menu-config-header">
+                    <h2 class="menu-config-title">菜单管理</h2>
+                    <button class="add-menu-btn" onclick="showAddMenuForm()">➕ 添加菜单</button>
+                </div>
+                
+                <!-- 添加/编辑菜单表单 -->
+                <div id="menuForm" class="menu-form hide">
+                    <div class="form-group">
+                        <label class="form-label">按钮名称</label>
+                        <input type="text" id="menuName" class="form-input" placeholder="例如: 一键部署智慧评价">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">源目录</label>
+                        <input type="text" id="menuSourceDir" class="form-input" placeholder="例如: C:\\Users\\17702\\Downloads">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">匹配前端文件名</label>
+                        <input type="text" id="menuFrontendPattern" class="form-input" placeholder="例如: zhpj-web*.zip">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">匹配后端文件名</label>
+                        <input type="text" id="menuBackendPattern" class="form-input" placeholder="例如: zhpj_api*.zip">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">部署脚本路径</label>
+                        <input type="text" id="menuDeployScript" class="form-input" placeholder="例如: /home/appuser/deploy.sh">
+                    </div>
+                    <div class="form-actions">
+                        <button class="save-btn" onclick="saveMenu()">💾 保存</button>
+                        <button class="cancel-btn" onclick="hideMenuForm()">❌ 取消</button>
+                    </div>
+                </div>
+                
+                <!-- 菜单列表 -->
+                <div id="menuList" class="menu-list">
+                    <!-- 菜单项将通过JavaScript动态生成 -->
+                </div>
             </div>
         </div>
     </div>
@@ -1319,6 +1739,27 @@
                 clearTimeout(sessionTimer);
                 sessionTimer = null;
             }
+            alert('会话已过期，请重新登录');
+            window.location.href = 'index.html';
+        }
+        
+        // 统一处理会话过期
+        function handleSessionExpired() {
+            console.log('检测到会话过期，清理本地存储并跳转到登录页面');
+            // 清理所有相关的本地存储
+            localStorage.removeItem('fileupload_auth_session');
+            localStorage.removeItem('fileupload_auth_time');
+            localStorage.removeItem('fileupload_authenticated');
+            localStorage.removeItem('menuConfigs');
+            
+            // 清理会话状态
+            sessionId = null;
+            if (sessionTimer) {
+                clearTimeout(sessionTimer);
+                sessionTimer = null;
+            }
+            
+            // 显示提示并跳转
             alert('会话已过期，请重新登录');
             window.location.href = 'index.html';
         }
@@ -1553,7 +1994,8 @@
             
             // 检查会话有效性
             if (!isSessionValid()) {
-                throw new Error('会话已过期，请刷新页面重新登录');
+                handleSessionExpired();
+                return;
             }
             
             // 1. 初始化上传
@@ -1688,7 +2130,8 @@
                 
                 // 检查会话有效性
                 if (!isSessionValid()) {
-                    throw new Error('会话已过期，请刷新页面重新登录');
+                    handleSessionExpired();
+                    return;
                 }
                 
                 const response = await fetch(`/api/files?sessionId=${sessionId}`);
@@ -1832,9 +2275,10 @@
                          deleteButtons.forEach(btn => btn.disabled = true);
                          
                          // 检查会话有效性
-                         if (!isSessionValid()) {
-                             throw new Error('会话已过期，请刷新页面重新登录');
-                         }
+            if (!isSessionValid()) {
+                handleSessionExpired();
+                return;
+            }
                          
                          const response = await fetch(`/api/files/${encodeURIComponent(fileName)}?sessionId=${sessionId}`, {
                              method: 'DELETE'
@@ -1987,7 +2431,8 @@
                  
                  // 检查会话有效性
                  if (!isSessionValid()) {
-                     throw new Error('会话已过期，请刷新页面重新登录');
+                     handleSessionExpired();
+                     return;
                  }
                  
                  // 创建下载链接
@@ -2097,7 +2542,8 @@
                  
                  // 检查会话有效性
                  if (!isSessionValid()) {
-                     throw new Error('会话已过期，下载中断');
+                     handleSessionExpired();
+                     return;
                  }
              }
              
@@ -2122,12 +2568,13 @@
          // 部署功能
          async function startDeploy() {
              const sourceDir = document.getElementById('sourceDir').value.trim();
-             const filePattern = document.getElementById('filePattern').value.trim();
+             const frontendPattern = document.getElementById('frontendPattern').value.trim();
+             const backendPattern = document.getElementById('backendPattern').value.trim();
              const deployScript = document.getElementById('deployScript').value.trim();
              const deployBtn = document.getElementById('deployBtn');
              const deployOutput = document.getElementById('deployOutput');
              
-             if (!sourceDir || !filePattern || !deployScript) {
+             if (!sourceDir || !frontendPattern || !backendPattern || !deployScript) {
                  alert('请填写所有必需的字段');
                  return;
              }
@@ -2138,16 +2585,17 @@
              
              // 显示输出区域
              deployOutput.classList.add('show');
-             deployOutput.textContent = `开始部署流程...\n源目录: ${sourceDir}\n文件模式: ${filePattern}\n部署脚本: ${deployScript}\n\n`;
+             deployOutput.textContent = `开始部署流程...\n源目录: ${sourceDir}\n匹配前端文件名: ${frontendPattern}\n匹配后端文件名: ${backendPattern}\n部署脚本: ${deployScript}\n\n`;
              
              try {
                  // 第一步：搜索文件
                  appendDeployLog('🔍 正在搜索匹配的文件...');
                  
                  // 检查会话有效性
-                 if (!isSessionValid()) {
-                     throw new Error('会话已过期，请刷新页面重新登录');
-                 }
+                     if (!isSessionValid()) {
+                         handleSessionExpired();
+                         return;
+                     }
                  
                  const searchResponse = await fetch('/api/deploy/search-files', {
                      method: 'POST',
@@ -2156,7 +2604,8 @@
                      },
                      body: JSON.stringify({
                          sourceDir: sourceDir,
-                         filePattern: filePattern,
+                         frontendPattern: frontendPattern,
+                         backendPattern: backendPattern,
                          sessionId: sessionId
                      })
                  });
@@ -2164,16 +2613,30 @@
                  const searchResult = await searchResponse.json();
                  
                  if (!searchResult.success) {
+                     // 检查是否是会话过期错误
+                     if (searchResult.error && searchResult.error.includes('会话')) {
+                         handleSessionExpired();
+                         return;
+                     }
                      throw new Error(searchResult.error || '文件搜索失败');
                  }
                  
-                 if (!searchResult.files || searchResult.files.length === 0) {
-                     throw new Error('未找到匹配的文件');
+                 // 显示搜索消息
+                 if (searchResult.messages && searchResult.messages.length > 0) {
+                     appendDeployLog('🔍 文件搜索结果:');
+                     searchResult.messages.forEach(message => {
+                         appendDeployLog(`   ${message}`);
+                     });
                  }
                  
-                 appendDeployLog(`✅ 找到 ${searchResult.files.length} 个匹配文件:`);
+                 if (!searchResult.files || searchResult.files.length === 0) {
+                     throw new Error('未找到可部署的文件');
+                 }
+                 
+                 appendDeployLog(`\n✅ 准备部署 ${searchResult.files.length} 个文件:`);
                  searchResult.files.forEach(file => {
-                     appendDeployLog(`   - ${file}`);
+                     const fileName = file.split('\\').pop() || file.split('/').pop();
+                     appendDeployLog(`   - ${fileName}`);
                  });
                  
                  // 第二步：上传文件
@@ -2184,7 +2647,8 @@
                      
                      // 检查会话有效性
                      if (!isSessionValid()) {
-                         throw new Error('会话已过期，请刷新页面重新登录');
+                         handleSessionExpired();
+                         return;
                      }
                      
                      const uploadResponse = await fetch('/api/deploy/upload-file', {
@@ -2211,9 +2675,10 @@
                  appendDeployLog('\n🚀 开始执行部署脚本...');
                  
                  // 检查会话有效性
-                 if (!isSessionValid()) {
-                     throw new Error('会话已过期，请刷新页面重新登录');
-                 }
+                     if (!isSessionValid()) {
+                         handleSessionExpired();
+                         return;
+                     }
                  
                  const scriptResponse = await fetch('/api/execute-script', {
                      method: 'POST',
@@ -2274,6 +2739,284 @@
              deployOutput.classList.remove('show');
          }
 
+         // ==================== 菜单管理功能 ====================
+         
+         let menuConfigs = JSON.parse(localStorage.getItem('menuConfigs') || '[]');
+         let editingMenuId = null;
+         
+         // 切换页面section
+         function showSection(sectionName) {
+             // 隐藏所有section
+             const sections = document.querySelectorAll('.content-section');
+             sections.forEach(section => {
+                 section.classList.remove('active');
+             });
+             
+             // 显示目标section
+             const targetSection = document.getElementById(sectionName + '-section');
+             if (targetSection) {
+                 targetSection.classList.add('active');
+             }
+             
+             // 更新导航按钮状态
+             const navBtns = document.querySelectorAll('.nav-btn');
+             navBtns.forEach(btn => {
+                 btn.classList.remove('active');
+             });
+             
+             // 激活当前按钮
+             const activeBtn = document.querySelector(`[onclick="showSection('${sectionName}')"]`);
+             if (activeBtn) {
+                 activeBtn.classList.add('active');
+             }
+             
+             // 如果切换到菜单管理，加载菜单列表
+             if (sectionName === 'menu-config') {
+                 loadMenuList();
+             }
+             
+             // 如果切换到自动部署，加载快捷菜单按钮
+             if (sectionName === 'deploy') {
+                 loadQuickMenuButtons();
+             }
+         }
+         
+         // 显示添加菜单表单
+         function showAddMenuForm() {
+             editingMenuId = null;
+             clearMenuForm();
+             const form = document.getElementById('menuForm');
+             form.classList.remove('hide');
+             form.classList.add('show');
+         }
+         
+         // 隐藏菜单表单
+         function hideMenuForm() {
+             const form = document.getElementById('menuForm');
+             form.classList.remove('show');
+             form.classList.add('hide');
+             editingMenuId = null;
+             clearMenuForm();
+         }
+         
+         // 清空菜单表单
+         function clearMenuForm() {
+             document.getElementById('menuName').value = '';
+             document.getElementById('menuSourceDir').value = '';
+             document.getElementById('menuFrontendPattern').value = '';
+             document.getElementById('menuBackendPattern').value = '';
+             document.getElementById('menuDeployScript').value = '';
+         }
+         
+         // 保存菜单
+         function saveMenu() {
+             const name = document.getElementById('menuName').value.trim();
+             const sourceDir = document.getElementById('menuSourceDir').value.trim();
+             const frontendPattern = document.getElementById('menuFrontendPattern').value.trim();
+             const backendPattern = document.getElementById('menuBackendPattern').value.trim();
+             const deployScript = document.getElementById('menuDeployScript').value.trim();
+             
+             if (!name || !sourceDir || !frontendPattern || !backendPattern || !deployScript) {
+                 alert('请填写所有必填字段');
+                 return;
+             }
+             
+             const menuConfig = {
+                 id: editingMenuId || Date.now().toString(),
+                 name: name,
+                 sourceDir: sourceDir,
+                 frontendPattern: frontendPattern,
+                 backendPattern: backendPattern,
+                 deployScript: deployScript,
+                 createTime: editingMenuId ? menuConfigs.find(m => m.id === editingMenuId).createTime : new Date().toISOString()
+             };
+             
+             if (editingMenuId) {
+                 // 编辑现有菜单
+                 const index = menuConfigs.findIndex(m => m.id === editingMenuId);
+                 if (index !== -1) {
+                     menuConfigs[index] = menuConfig;
+                 }
+             } else {
+                 // 添加新菜单
+                 menuConfigs.push(menuConfig);
+             }
+             
+             // 保存到localStorage
+             localStorage.setItem('menuConfigs', JSON.stringify(menuConfigs));
+             
+             // 隐藏表单并刷新列表
+             hideMenuForm();
+             loadMenuList();
+             
+             // 刷新快捷菜单按钮
+             loadQuickMenuButtons();
+             
+             alert(editingMenuId ? '菜单更新成功！' : '菜单添加成功！');
+         }
+         
+         // 编辑菜单
+         function editMenu(menuId) {
+             const menu = menuConfigs.find(m => m.id === menuId);
+             if (!menu) return;
+             
+             editingMenuId = menuId;
+             document.getElementById('menuName').value = menu.name;
+             document.getElementById('menuSourceDir').value = menu.sourceDir;
+             document.getElementById('menuFrontendPattern').value = menu.frontendPattern || '';
+             document.getElementById('menuBackendPattern').value = menu.backendPattern || '';
+             document.getElementById('menuDeployScript').value = menu.deployScript;
+             
+             const form = document.getElementById('menuForm');
+             form.classList.remove('hide');
+             form.classList.add('show');
+         }
+         
+         // 删除菜单
+         function deleteMenu(menuId) {
+             const menu = menuConfigs.find(m => m.id === menuId);
+             if (!menu) return;
+             
+             if (confirm(`确定要删除菜单 "${menu.name}" 吗？`)) {
+                 menuConfigs = menuConfigs.filter(m => m.id !== menuId);
+                 localStorage.setItem('menuConfigs', JSON.stringify(menuConfigs));
+                 loadMenuList();
+                 
+                 // 刷新快捷菜单按钮
+                 loadQuickMenuButtons();
+                 
+                 alert('菜单删除成功！');
+             }
+         }
+         
+         // 执行菜单部署
+         async function executeMenuDeploy(menuId) {
+             const menu = menuConfigs.find(m => m.id === menuId);
+             if (!menu) return;
+             
+             // 切换到部署页面
+             showSection('deploy');
+             
+             // 填充部署表单
+             document.getElementById('sourceDir').value = menu.sourceDir;
+             document.getElementById('frontendPattern').value = menu.frontendPattern || '';
+             document.getElementById('backendPattern').value = menu.backendPattern || '';
+             document.getElementById('deployScript').value = menu.deployScript;
+             
+             // 自动开始部署
+             setTimeout(() => {
+                 startDeploy();
+             }, 500);
+         }
+         
+         // 加载菜单列表
+         function loadMenuList() {
+             const menuList = document.getElementById('menuList');
+             
+             if (menuConfigs.length === 0) {
+                 menuList.innerHTML = `
+                     <div style="text-align: center; padding: 40px; color: #6b7280;">
+                         <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                         <div style="font-size: 16px; font-weight: 600;">暂无菜单配置</div>
+                         <div style="font-size: 14px; margin-top: 8px;">点击上方"添加菜单"按钮创建第一个菜单</div>
+                     </div>
+                 `;
+                 return;
+             }
+             
+             menuList.innerHTML = menuConfigs.map(menu => `
+                 <div class="menu-item">
+                     <div class="menu-item-header">
+                         <div class="menu-item-name">🚀 ${menu.name}</div>
+                         <div class="menu-item-actions">
+                             <button class="deploy-menu-btn" onclick="executeMenuDeploy('${menu.id}')">部署</button>
+                             <button class="edit-btn" onclick="editMenu('${menu.id}')">编辑</button>
+                             <button class="delete-btn" onclick="deleteMenu('${menu.id}')">删除</button>
+                         </div>
+                     </div>
+                     <div class="menu-item-details">
+                         <div class="menu-detail-item">
+                             <div class="menu-detail-label">源目录</div>
+                             <div class="menu-detail-value">${menu.sourceDir}</div>
+                         </div>
+                         <div class="menu-detail-item">
+                             <div class="menu-detail-label">匹配前端文件名</div>
+                             <div class="menu-detail-value">${menu.frontendPattern || '未设置'}</div>
+                         </div>
+                         <div class="menu-detail-item">
+                             <div class="menu-detail-label">匹配后端文件名</div>
+                             <div class="menu-detail-value">${menu.backendPattern || '未设置'}</div>
+                         </div>
+                         <div class="menu-detail-item">
+                             <div class="menu-detail-label">部署脚本</div>
+                             <div class="menu-detail-value">${menu.deployScript}</div>
+                         </div>
+                         <div class="menu-detail-item">
+                             <div class="menu-detail-label">创建时间</div>
+                             <div class="menu-detail-value">${new Date(menu.createTime).toLocaleString()}</div>
+                         </div>
+                     </div>
+                 </div>
+             `).join('');
+         }
+         
+         // ==================== 快捷菜单按钮功能 ====================
+         
+         // 加载快捷菜单按钮
+         function loadQuickMenuButtons() {
+             const quickMenuButtons = document.getElementById('quickMenuButtons');
+             const quickMenuSection = document.getElementById('quickMenuSection');
+             
+             if (menuConfigs.length === 0) {
+                 quickMenuButtons.innerHTML = `
+                     <div class="quick-menu-empty">
+                         <div class="quick-menu-empty-icon">📋</div>
+                         <div>暂无快捷菜单</div>
+                         <div style="margin-top: 8px; font-size: 12px;">请先在菜单管理中配置部署菜单</div>
+                     </div>
+                 `;
+                 return;
+             }
+             
+             quickMenuButtons.innerHTML = menuConfigs.map(menu => `
+                 <button class="quick-deploy-btn" onclick="executeQuickDeploy('${menu.id}')" title="${menu.name}\n源目录: ${menu.sourceDir}\n前端文件: ${menu.frontendPattern || '未设置'}\n后端文件: ${menu.backendPattern || '未设置'}\n脚本: ${menu.deployScript}">
+                     🚀 ${menu.name}
+                 </button>
+             `).join('');
+         }
+         
+         // 执行快捷部署
+         function executeQuickDeploy(menuId) {
+             const menu = menuConfigs.find(m => m.id === menuId);
+             if (!menu) {
+                 alert('菜单配置不存在');
+                 return;
+             }
+             
+             // 填充部署表单
+             document.getElementById('sourceDir').value = menu.sourceDir;
+             document.getElementById('frontendPattern').value = menu.frontendPattern || '';
+             document.getElementById('backendPattern').value = menu.backendPattern || '';
+             document.getElementById('deployScript').value = menu.deployScript;
+             
+             // 滚动到部署区域
+             const deployContent = document.querySelector('.deploy-content');
+             deployContent.scrollIntoView({ behavior: 'smooth' });
+             
+             // 自动开始部署
+             setTimeout(() => {
+                 startDeploy();
+             }, 500);
+         }
+         
+         // 页面加载完成后初始化
+         document.addEventListener('DOMContentLoaded', function() {
+             // 默认显示文件上传页面
+             showSection('upload');
+             
+             // 初始化快捷菜单按钮
+             loadQuickMenuButtons();
+         });
 
     </script>
 </body>

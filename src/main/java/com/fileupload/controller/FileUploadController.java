@@ -26,6 +26,8 @@ import java.security.MessageDigest;
 import java.util.regex.Pattern;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Controller
 public class FileUploadController {
@@ -33,6 +35,10 @@ public class FileUploadController {
     // 上传目录配置，可以通过application.properties配置
     @Value("${file.upload.path:D:/file_test}")
     private String uploadPath;
+    
+    // 目标目录配置，与上传目录保持一致
+    @Value("${file.target.path:${file.upload.path}}")
+    private String targetPath;
 
     // 最大文件大小 (500MB)
     private static final long MAX_FILE_SIZE = 500 * 1024 * 1024;
@@ -924,7 +930,8 @@ public class FileUploadController {
         }
         
         String sourceDir = request.get("sourceDir");
-        String filePattern = request.get("filePattern");
+        String frontendPattern = request.get("frontendPattern");
+        String backendPattern = request.get("backendPattern");
         
         if (sourceDir == null || sourceDir.trim().isEmpty()) {
             response.put("success", false);
@@ -932,9 +939,10 @@ public class FileUploadController {
             return ResponseEntity.badRequest().body(response);
         }
         
-        if (filePattern == null || filePattern.trim().isEmpty()) {
+        if ((frontendPattern == null || frontendPattern.trim().isEmpty()) && 
+            (backendPattern == null || backendPattern.trim().isEmpty())) {
             response.put("success", false);
-            response.put("error", "文件模式不能为空");
+            response.put("error", "前端或后端文件匹配模式至少需要填写一个");
             return ResponseEntity.badRequest().body(response);
         }
         
@@ -946,24 +954,156 @@ public class FileUploadController {
                 return ResponseEntity.badRequest().body(response);
             }
             
-            // 将通配符模式转换为正则表达式
-            String regex = filePattern.replace("*", ".*").replace("?", ".");
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(regex, java.util.regex.Pattern.CASE_INSENSITIVE);
+            // 当前时间
+            long currentTime = System.currentTimeMillis();
+            long tenMinutesAgo = currentTime - (10 * 60 * 1000); // 10分钟前
             
-            List<String> matchedFiles = new ArrayList<>();
+            // 分别处理前端和后端文件
+            File apiFile = null; // 后端文件
+            File webFile = null; // 前端文件
+            List<String> messages = new ArrayList<>();
+            
             File[] files = dir.listFiles();
-            
             if (files != null) {
-                for (File file : files) {
-                    if (file.isFile() && pattern.matcher(file.getName()).matches()) {
-                        matchedFiles.add(file.getAbsolutePath());
+                // 处理后端文件
+                if (backendPattern != null && !backendPattern.trim().isEmpty()) {
+                    String[] backendPatterns = backendPattern.split(",");
+                    for (String pattern : backendPatterns) {
+                        String trimmedPattern = pattern.trim();
+                        if (trimmedPattern.isEmpty()) continue;
+                        
+                        // 转换通配符为正则表达式
+                        String regex = trimmedPattern.replace("*", ".*").replace("?", ".");
+                        java.util.regex.Pattern compiledPattern = java.util.regex.Pattern.compile(regex, java.util.regex.Pattern.CASE_INSENSITIVE);
+                        
+                        // 查找匹配的文件
+                        List<File> matchedFiles = new ArrayList<>();
+                        for (File file : files) {
+                            if (file.isFile() && compiledPattern.matcher(file.getName()).matches()) {
+                                // 检查文件是否在10分钟内
+                                if (file.lastModified() >= tenMinutesAgo) {
+                                    matchedFiles.add(file);
+                                }
+                            }
+                        }
+                        
+                        if (matchedFiles.isEmpty()) {
+                            // 检查是否有匹配的文件但不在10分钟内
+                            boolean hasOldFiles = false;
+                            for (File file : files) {
+                                if (file.isFile() && compiledPattern.matcher(file.getName()).matches()) {
+                                    hasOldFiles = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (hasOldFiles) {
+                                messages.add("后端文件存在但不在10分钟内，未找到最新的后端文件");
+                            } else {
+                                messages.add("未找到后端文件");
+                            }
+                            continue;
+                        }
+                        
+                        // 找到最新的文件
+                        File latestFile = matchedFiles.get(0);
+                        for (File file : matchedFiles) {
+                            if (file.lastModified() > latestFile.lastModified()) {
+                                latestFile = file;
+                            }
+                        }
+                        
+                        // 设置后端文件
+                        if (apiFile == null) {
+                            // 检查是否为jar文件，如果是则压缩成zip包
+                            if (latestFile.getName().toLowerCase().endsWith(".jar")) {
+                                try {
+                                    File zipFile = compressJarToZip(latestFile);
+                                    apiFile = zipFile;
+                                    messages.add("找到最新后端文件: " + latestFile.getName() + "，已压缩为: " + zipFile.getName());
+                                } catch (Exception e) {
+                                    messages.add("压缩jar文件失败: " + e.getMessage());
+                                    apiFile = latestFile;
+                                    messages.add("找到最新后端文件: " + latestFile.getName());
+                                }
+                            } else {
+                                apiFile = latestFile;
+                                messages.add("找到最新后端文件: " + latestFile.getName());
+                            }
+                        }
+                    }
+                }
+                
+                // 处理前端文件
+                if (frontendPattern != null && !frontendPattern.trim().isEmpty()) {
+                    String[] frontendPatterns = frontendPattern.split(",");
+                    for (String pattern : frontendPatterns) {
+                        String trimmedPattern = pattern.trim();
+                        if (trimmedPattern.isEmpty()) continue;
+                        
+                        // 转换通配符为正则表达式
+                        String regex = trimmedPattern.replace("*", ".*").replace("?", ".");
+                        java.util.regex.Pattern compiledPattern = java.util.regex.Pattern.compile(regex, java.util.regex.Pattern.CASE_INSENSITIVE);
+                        
+                        // 查找匹配的文件
+                        List<File> matchedFiles = new ArrayList<>();
+                        for (File file : files) {
+                            if (file.isFile() && compiledPattern.matcher(file.getName()).matches()) {
+                                // 检查文件是否在10分钟内
+                                if (file.lastModified() >= tenMinutesAgo) {
+                                    matchedFiles.add(file);
+                                }
+                            }
+                        }
+                        
+                        if (matchedFiles.isEmpty()) {
+                            // 检查是否有匹配的文件但不在10分钟内
+                            boolean hasOldFiles = false;
+                            for (File file : files) {
+                                if (file.isFile() && compiledPattern.matcher(file.getName()).matches()) {
+                                    hasOldFiles = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (hasOldFiles) {
+                                messages.add("前端文件存在但不在10分钟内，未找到最新的前端文件");
+                            } else {
+                                messages.add("未找到前端文件");
+                            }
+                            continue;
+                        }
+                        
+                        // 找到最新的文件
+                        File latestFile = matchedFiles.get(0);
+                        for (File file : matchedFiles) {
+                            if (file.lastModified() > latestFile.lastModified()) {
+                                latestFile = file;
+                            }
+                        }
+                        
+                        // 设置前端文件
+                        if (webFile == null) {
+                            webFile = latestFile;
+                            messages.add("找到最新前端文件: " + latestFile.getName());
+                        }
                     }
                 }
             }
             
+            // 构建最终结果
+            List<String> finalFiles = new ArrayList<>();
+            if (apiFile != null) {
+                finalFiles.add(apiFile.getAbsolutePath());
+            }
+            if (webFile != null) {
+                finalFiles.add(webFile.getAbsolutePath());
+            }
+            
             response.put("success", true);
-            response.put("files", matchedFiles);
-            response.put("count", matchedFiles.size());
+            response.put("files", finalFiles);
+            response.put("messages", messages);
+            response.put("count", finalFiles.size());
             
             return ResponseEntity.ok(response);
             
@@ -1478,6 +1618,18 @@ public class FileUploadController {
     }
 
     /**
+     * 获取目标目录路径
+     */
+    @GetMapping("/api/target-directory")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getTargetDirectory() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("targetPath", targetPath);
+        response.put("uploadPath", uploadPath);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * 格式化文件大小
      */
     private String formatFileSize(long bytes) {
@@ -1515,6 +1667,42 @@ public class FileUploadController {
             return fileName.substring(lastDotIndex);
         }
         return "";
+    }
+
+    /**
+     * 将jar文件压缩成zip包
+     */
+    private File compressJarToZip(File jarFile) throws IOException {
+        // 生成zip文件名
+        String jarFileName = jarFile.getName();
+        String zipFileName = jarFileName.substring(0, jarFileName.lastIndexOf('.')) + ".zip";
+        File zipFile = new File(jarFile.getParent(), zipFileName);
+        
+        // 如果zip文件已存在，先删除
+        if (zipFile.exists()) {
+            zipFile.delete();
+        }
+        
+        // 创建zip文件
+        try (FileOutputStream fos = new FileOutputStream(zipFile);
+             ZipOutputStream zos = new ZipOutputStream(fos);
+             FileInputStream fis = new FileInputStream(jarFile)) {
+            
+            // 添加jar文件到zip中
+            ZipEntry zipEntry = new ZipEntry(jarFileName);
+            zos.putNextEntry(zipEntry);
+            
+            // 复制文件内容
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer)) > 0) {
+                zos.write(buffer, 0, length);
+            }
+            
+            zos.closeEntry();
+        }
+        
+        return zipFile;
     }
 
     /**
